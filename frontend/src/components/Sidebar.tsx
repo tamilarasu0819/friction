@@ -1,4 +1,5 @@
 import React from 'react';
+import { MessageSquare, Database, Settings } from 'lucide-react';
 
 export function Sidebar() {
   return (
@@ -6,26 +7,26 @@ export function Sidebar() {
       {/* Profile Section */}
       <div className="p-6 border-b border-slate-800 flex items-center space-x-4">
         <div className="w-12 h-12 rounded-full bg-slate-700 flex items-center justify-center font-bold text-white shrink-0">
-          U
+          V
         </div>
         <div className="min-w-0">
-          <h2 className="text-white font-semibold truncate">User Name</h2>
+          <h2 className="text-white font-semibold truncate">Vikram</h2>
           <p className="text-sm text-emerald-400 truncate">Online</p>
         </div>
       </div>
 
       {/* Navigation List */}
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        <div className="flex items-center space-x-3 p-3 rounded-lg bg-slate-800 text-white cursor-pointer">
-          <span className="text-slate-400 w-5 text-center">[Icon]</span>
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800 text-white cursor-pointer">
+          <MessageSquare className="w-5 h-5 text-slate-400" />
           <span className="font-medium">Chats</span>
         </div>
-        <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer text-slate-400 hover:text-white">
-          <span className="w-5 text-center">[Icon]</span>
-          <span className="font-medium">Contacts</span>
+        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer text-slate-400 hover:text-white">
+          <Database className="w-5 h-5" />
+          <span className="font-medium">Knowledge Base</span>
         </div>
-        <div className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer text-slate-400 hover:text-white">
-          <span className="w-5 text-center">[Icon]</span>
+        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer text-slate-400 hover:text-white">
+          <Settings className="w-5 h-5" />
           <span className="font-medium">Settings</span>
         </div>
       </nav>
