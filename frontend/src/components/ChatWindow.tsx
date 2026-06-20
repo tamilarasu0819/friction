@@ -21,18 +21,41 @@ export function ChatWindow() {
   ]);
   const [inputText, setInputText] = useState('');
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (inputText.trim() === '') return;
 
+    const userText = inputText;
     const newMessage: Message = {
       id: Date.now().toString(),
-      content: inputText,
+      content: userText,
       isSent: true,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages([...messages, newMessage]);
+    setMessages(prev => [...prev, newMessage]);
     setInputText('');
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userText }),
+      });
+      const data = await response.json();
+      
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: data.bot_reply,
+        isSent: false,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error("Error communicating with backend:", error);
+    }
   };
 
   return (
