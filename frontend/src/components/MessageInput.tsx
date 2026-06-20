@@ -21,9 +21,9 @@ export function MessageInput({ value, onChange, onSend }: MessageInputProps) {
           <Paperclip className="w-5 h-5" />
         </button>
         <div className="flex-1 relative">
-          <input 
-            type="text" 
-            placeholder="Type your message..." 
+          <input
+            type="text"
+            placeholder="Type your message..."
             value={value}
             onChange={onChange}
             onKeyDown={handleKeyDown}
@@ -33,7 +33,7 @@ export function MessageInput({ value, onChange, onSend }: MessageInputProps) {
         <button className="p-2.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-full transition-colors shrink-0">
           <Smile className="w-5 h-5" />
         </button>
-        <button 
+        <button
           onClick={onSend}
           className="p-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all flex items-center justify-center font-medium shadow-md hover:shadow-lg hover:scale-105 active:scale-95 shrink-0"
         >

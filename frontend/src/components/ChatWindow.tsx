@@ -23,7 +23,7 @@ export function ChatWindow() {
 
   const handleSend = () => {
     if (inputText.trim() === '') return;
-    
+
     const newMessage: Message = {
       id: Date.now().toString(),
       content: inputText,
@@ -38,8 +38,8 @@ export function ChatWindow() {
   return (
     <div className="flex-1 flex flex-col bg-slate-800 h-full relative overflow-hidden">
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-           style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{ backgroundImage: 'radial-gradient(#ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
       </div>
 
       {/* Header */}
@@ -69,9 +69,9 @@ export function ChatWindow() {
               Today
             </span>
           </div>
-          
+
           {messages.map((msg) => (
-            <MessageBubble 
+            <MessageBubble
               key={msg.id}
               content={msg.content}
               isSent={msg.isSent}
@@ -82,7 +82,7 @@ export function ChatWindow() {
       </div>
 
       {/* Message Input Area */}
-      <MessageInput 
+      <MessageInput
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         onSend={handleSend}

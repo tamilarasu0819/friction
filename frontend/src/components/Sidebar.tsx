@@ -1,4 +1,3 @@
-import React from 'react';
 import { MessageSquare, Database, Settings } from 'lucide-react';
 
 export function Sidebar() {
