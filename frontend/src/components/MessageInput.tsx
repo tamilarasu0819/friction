@@ -15,29 +15,29 @@ export function MessageInput({ value, onChange, onSend, disabled }: MessageInput
   };
 
   return (
-    <div className="p-4 bg-slate-900 border-t border-slate-700 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-10">
-      <div className="flex items-center space-x-3 max-w-5xl mx-auto">
-        <button className="p-2.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-full transition-colors shrink-0">
+    <div className="p-4 sm:p-6 bg-header backdrop-blur-md border-t border-border-color z-10 w-full shrink-0 transition-colors duration-300">
+      <div className="flex items-center space-x-3 max-w-4xl mx-auto">
+        <button className="p-3 text-text-secondary hover:text-text-primary hover:bg-bg-panel rounded-full transition-colors shrink-0">
           <Paperclip className="w-5 h-5" />
         </button>
         <div className="flex-1 relative">
           <input
             type="text"
-            placeholder="Type your message..."
+            placeholder="Message Friction AI..."
             value={value}
             onChange={onChange}
             onKeyDown={handleKeyDown}
             disabled={disabled}
-            className={`w-full bg-slate-800 border border-slate-700 rounded-full py-3.5 px-6 text-slate-200 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all placeholder-slate-500 shadow-inner ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`w-full bg-bg-panel border border-border-color rounded-2xl py-4 px-6 text-text-primary focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all placeholder-text-muted shadow-sm ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           />
         </div>
-        <button className="p-2.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-full transition-colors shrink-0">
+        <button className="p-3 text-text-secondary hover:text-text-primary hover:bg-bg-panel rounded-full transition-colors shrink-0">
           <Smile className="w-5 h-5" />
         </button>
         <button
           onClick={onSend}
-          disabled={disabled}
-          className={`p-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full transition-all flex items-center justify-center font-medium shadow-md hover:shadow-lg hover:scale-105 active:scale-95 shrink-0 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={disabled || value.trim() === ''}
+          className={`p-4 bg-accent hover:bg-accent-hover text-white rounded-2xl transition-all flex items-center justify-center font-medium shadow-md hover:shadow-lg active:scale-95 shrink-0 ${disabled || value.trim() === '' ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
         >
           <Send className="w-5 h-5 ml-0.5" />
         </button>

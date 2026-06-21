@@ -1,20 +1,32 @@
+import ReactMarkdown from 'react-markdown';
 
 interface MessageBubbleProps {
   content: string;
   isSent: boolean;
   time: string;
+  modelUsed?: string;
 }
 
-export function MessageBubble({ content, isSent, time }: MessageBubbleProps) {
+export function MessageBubble({ content, isSent, time, modelUsed }: MessageBubbleProps) {
   return (
-    <div className={`flex w-full ${isSent ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`max-w-[75%] md:max-w-[65%] rounded-2xl px-5 py-3 shadow-sm ${isSent
-        ? 'bg-blue-600 text-white rounded-br-sm'
-        : 'bg-slate-700 text-slate-100 rounded-bl-sm'
+    <div className={`flex w-full ${isSent ? 'justify-end' : 'justify-start'} mb-6 group`}>
+      <div className={`max-w-[85%] md:max-w-[75%] rounded-3xl px-6 py-4 shadow-sm backdrop-blur-sm transition-all duration-300 ${
+        isSent
+          ? 'bg-bubble-user text-white rounded-br-sm'
+          : 'bg-bubble-ai border border-border-color text-text-primary rounded-bl-sm'
         }`}>
-        <p className="leading-relaxed text-[15px]">{content}</p>
-        <div className={`text-[11px] mt-1.5 font-medium ${isSent ? 'text-blue-200' : 'text-slate-400'} ${isSent ? 'text-right' : 'text-left'}`}>
-          {time}
+        <div className="leading-relaxed text-[15px] tracking-wide markdown-body whitespace-pre-wrap">
+          {isSent ? content : <ReactMarkdown>{content}</ReactMarkdown>}
+        </div>
+        <div className={`mt-3 flex items-center justify-${isSent ? 'end' : 'start'} gap-2 opacity-60 group-hover:opacity-100 transition-opacity`}>
+          {!isSent && modelUsed && (
+            <span className="text-[10px] font-medium bg-text-primary/10 text-text-primary px-2 py-0.5 rounded-full border border-text-primary/10">
+              Model: {modelUsed}
+            </span>
+          )}
+          <span className={`text-[11px] font-medium ${isSent ? 'text-white/80' : 'text-text-secondary'}`}>
+            {time}
+          </span>
         </div>
       </div>
     </div>
