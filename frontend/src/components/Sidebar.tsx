@@ -1,25 +1,53 @@
-import { MessageSquare, Database, Settings } from 'lucide-react';
+import { MessageSquare, Database, Settings, LogOut } from 'lucide-react';
+import { GoogleLogin } from '@react-oauth/google';
 
 interface SidebarProps {
   onOpenSettings?: () => void;
   activeView?: 'chat' | 'knowledge_base';
   setActiveView?: (view: 'chat' | 'knowledge_base') => void;
-  conversations?: { id: string; title: string; timestamp: string }[];
+  conversations?: { id: string; title: string; updated_at?: string; timestamp?: string }[];
+  onLoginSuccess?: (res: any) => void;
+  onLogout?: () => void;
+  user?: any;
+  onSelectConversation?: (id: string) => void;
 }
 
-export function Sidebar({ onOpenSettings, activeView = 'chat', setActiveView, conversations = [] }: SidebarProps) {
+export function Sidebar({ 
+  onOpenSettings, 
+  activeView = 'chat', 
+  setActiveView, 
+  conversations = [],
+  onLoginSuccess,
+  onLogout,
+  user,
+  onSelectConversation
+}: SidebarProps) {
   return (
     <div className="w-[25%] h-full bg-bg-sidebar border-r border-border-color flex flex-col text-text-primary transition-colors duration-300 z-20">
       {/* Profile Section */}
-      <div className="p-6 border-b border-border-color flex items-center space-x-4">
-        <div className="w-12 h-12 rounded-full bg-bg-panel flex items-center justify-center font-bold text-text-primary shrink-0 transition-colors">
-          V
+      {user ? (
+        <div className="p-6 border-b border-border-color flex items-center justify-between">
+          <div className="flex items-center space-x-4 min-w-0">
+            <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center font-bold text-white shrink-0">
+              {user.name?.[0] || 'U'}
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-text-primary font-semibold truncate text-sm">{user.name}</h2>
+              <p className="text-xs text-emerald-500 truncate">Online</p>
+            </div>
+          </div>
+          <button onClick={onLogout} className="text-text-muted hover:text-text-primary">
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
-        <div className="min-w-0">
-          <h2 className="text-text-primary font-semibold truncate">Vikram</h2>
-          <p className="text-sm text-emerald-500 truncate">Online</p>
+      ) : (
+        <div className="p-6 border-b border-border-color flex items-center justify-center">
+          <GoogleLogin 
+            onSuccess={(res) => onLoginSuccess?.(res)} 
+            onError={() => console.log('Login Failed')} 
+          />
         </div>
-      </div>
+      )}
 
       {/* Navigation List */}
       <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
@@ -41,10 +69,12 @@ export function Sidebar({ onOpenSettings, activeView = 'chat', setActiveView, co
                 <div 
                   key={conv.id}
                   className="group flex items-center justify-between py-2 px-3 rounded-md hover:bg-bg-panel cursor-pointer transition-colors"
-                  onClick={() => console.log('Clear/reload chat', conv.id)}
+                  onClick={() => onSelectConversation?.(conv.id)}
                 >
                   <span className="text-sm text-text-secondary group-hover:text-text-primary truncate pr-2">{conv.title}</span>
-                  <span className="text-[10px] text-text-muted shrink-0">{conv.timestamp}</span>
+                  <span className="text-[10px] text-text-muted shrink-0">
+                    {conv.updated_at ? new Date(conv.updated_at).toLocaleDateString() : conv.timestamp}
+                  </span>
                 </div>
               ))}
             </div>

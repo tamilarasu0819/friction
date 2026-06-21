@@ -22,7 +22,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-[8px] animate-in fade-in duration-200">
-      <div className="bg-panel w-full max-w-md rounded-2xl shadow-xl border border-border-color overflow-hidden">
+      <div className="bg-bg-panel w-full max-w-md rounded-2xl shadow-xl border border-border-color overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b border-border-color bg-header">
           <h2 className="text-xl font-semibold text-text-primary">Settings</h2>
           <button 
@@ -40,6 +40,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <button
                 key={t.id}
                 onClick={() => setTheme(t.id as any)}
+                onMouseEnter={() => document.documentElement.setAttribute('data-theme', t.id)}
+                onMouseLeave={() => document.documentElement.setAttribute('data-theme', theme)}
                 className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
                   theme === t.id 
                     ? 'border-accent bg-accent/10 text-text-primary' 

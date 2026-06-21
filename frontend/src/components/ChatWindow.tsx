@@ -11,15 +11,15 @@ interface Message {
   modelUsed?: string;
 }
 
-export function ChatWindow() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: "Hello! I am the Friction RAG Engine. How can I assist you with your knowledge base today?",
-      isSent: false,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    }
-  ]);
+interface ChatWindowProps {
+  token?: string | null;
+  conversationId?: string;
+  setConversationId?: (id: string) => void;
+  setActiveView?: (view: 'chat' | 'knowledge_base') => void;
+}
+
+export function ChatWindow({ token, conversationId, setConversationId, setActiveView }: ChatWindowProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedModel, setSelectedModel] = useState('llama-3.1-8b-instant');
@@ -28,6 +28,33 @@ export function ChatWindow() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  useEffect(() => {
+    if (conversationId && token) {
+      fetch(`http://127.0.0.1:8000/api/chat/${conversationId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(Array.isArray(data)) {
+          setMessages(data.map((m: any) => ({
+            id: m.id,
+            content: m.content,
+            isSent: m.role === 'user',
+            time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          })));
+        }
+      })
+      .catch(e => console.error("Error fetching history:", e));
+    } else {
+      setMessages([{
+        id: '1',
+        content: "Hello! I am the Friction RAG Engine. How can I assist you with your knowledge base today?",
+        isSent: false,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+    }
+  }, [conversationId, token]);
 
   useEffect(() => {
     scrollToBottom();
@@ -53,8 +80,9 @@ export function ChatWindow() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
-        body: JSON.stringify({ message: userText, model: selectedModel }),
+        body: JSON.stringify({ message: userText, model: selectedModel, conversation_id: conversationId }),
       });
 
       if (!response.ok) {
@@ -62,6 +90,10 @@ export function ChatWindow() {
       }
 
       const data = await response.json();
+      
+      if(data.conversation_id && setConversationId && data.conversation_id !== conversationId) {
+        setConversationId(data.conversation_id);
+      }
 
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -86,8 +118,23 @@ export function ChatWindow() {
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if(e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+       setActiveView?.('knowledge_base');
+    }
+  };
+
   return (
-    <div className="flex-1 flex flex-col bg-bg-app h-full relative overflow-hidden transition-colors duration-300">
+    <div 
+      className="flex-1 flex flex-col bg-bg-app h-full relative overflow-hidden transition-colors duration-300"
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{ backgroundImage: 'radial-gradient(var(--theme-text-primary) 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
