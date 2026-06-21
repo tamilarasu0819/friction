@@ -37,7 +37,7 @@ export function MessageInput({ value, onChange, onSend, disabled }: MessageInput
         <button
           onClick={onSend}
           disabled={disabled || value.trim() === ''}
-          className={`p-4 bg-accent hover:bg-accent-hover text-white rounded-2xl transition-all flex items-center justify-center font-medium shadow-md hover:shadow-lg active:scale-95 shrink-0 ${disabled || value.trim() === '' ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
+          className={`p-4 bg-accent hover:bg-accent-hover text-accent-fg rounded-2xl transition-all flex items-center justify-center font-medium shadow-md hover:shadow-lg active:scale-95 shrink-0 ${disabled || value.trim() === '' ? 'opacity-50 cursor-not-allowed' : 'hover:-translate-y-0.5'}`}
         >
           <Send className="w-5 h-5 ml-0.5" />
         </button>
