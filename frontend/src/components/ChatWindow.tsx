@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { MoreVertical, Bot } from 'lucide-react';
 import { MessageBubble } from './MessageBubble';
 import { MessageInput } from './MessageInput';

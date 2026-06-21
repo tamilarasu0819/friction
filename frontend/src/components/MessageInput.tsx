@@ -1,4 +1,3 @@
-import React from 'react';
 import { Paperclip, Smile, Send } from 'lucide-react';
 
 interface MessageInputProps {
