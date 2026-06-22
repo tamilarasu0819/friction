@@ -8,11 +8,13 @@ from dotenv import load_dotenv
 from sqlalchemy.orm import Session
 from database import get_db, User, Conversation, Message
 from auth import verify_google_token
-from typing import Optional
+from typing import Optional, Dict, List, Any
 
 load_dotenv()
 
 app = FastAPI()
+
+GUEST_SESSIONS: Dict[str, List[dict]] = {}
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,7 +30,9 @@ class UserMessage(BaseModel):
     conversation_id: Optional[str] = None
 
 @app.post("/api/auth")
-async def authenticate_user(idinfo: dict = Depends(verify_google_token), db: Session = Depends(get_db)):
+async def authenticate_user(idinfo: Optional[dict] = Depends(verify_google_token), db: Session = Depends(get_db)):
+    if not idinfo:
+        raise HTTPException(status_code=401, detail="Authentication required")
     user_id = idinfo.get("sub")
     email = idinfo.get("email")
     name = idinfo.get("name")
@@ -42,13 +46,30 @@ async def authenticate_user(idinfo: dict = Depends(verify_google_token), db: Ses
     return {"status": "success", "user": {"id": user.id, "email": user.email, "name": user.name}}
 
 @app.get("/api/conversations")
-async def get_conversations(idinfo: dict = Depends(verify_google_token), db: Session = Depends(get_db)):
+async def get_conversations(idinfo: Optional[dict] = Depends(verify_google_token), db: Session = Depends(get_db)):
+    if not idinfo:
+        return []
     user_id = idinfo.get("sub")
     conversations = db.query(Conversation).filter(Conversation.user_id == user_id).order_by(Conversation.updated_at.desc()).all()
     return [{"id": c.id, "title": c.title, "updated_at": c.updated_at} for c in conversations]
 
 @app.get("/api/chat/{conversation_id}")
-async def get_chat_history(conversation_id: str, idinfo: dict = Depends(verify_google_token), db: Session = Depends(get_db)):
+async def get_chat_history(conversation_id: str, idinfo: Optional[dict] = Depends(verify_google_token), db: Session = Depends(get_db)):
+    if not idinfo:
+        if conversation_id in GUEST_SESSIONS:
+            msgs = GUEST_SESSIONS[conversation_id]
+            result = []
+            for m in msgs:
+                if m["role"] != "system":
+                    result.append({
+                        "id": str(uuid.uuid4()),
+                        "role": m["role"],
+                        "content": m["content"],
+                        "timestamp": None
+                    })
+            return result
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
     user_id = idinfo.get("sub")
     conv = db.query(Conversation).filter(Conversation.id == conversation_id, Conversation.user_id == user_id).first()
     if not conv:
@@ -57,13 +78,35 @@ async def get_chat_history(conversation_id: str, idinfo: dict = Depends(verify_g
     return [{"id": m.id, "role": m.role, "content": m.content, "timestamp": m.timestamp} for m in msgs]
 
 @app.post("/api/chat")
-async def chat(user_msg: UserMessage, idinfo: dict = Depends(verify_google_token), db: Session = Depends(get_db)):
+async def chat(user_msg: UserMessage, idinfo: Optional[dict] = Depends(verify_google_token), db: Session = Depends(get_db)):
     try:
-        user_id = idinfo.get("sub")
         client = Groq(api_key=os.getenv('GROQ_API_KEY'))
-        
         conversation_id = user_msg.conversation_id
-        chat_history = [{"role": "system", "content": "You are the Friction RAG Engine. Give direct, markdown-formatted answers."}]
+        
+        if not idinfo:
+            if not conversation_id or conversation_id not in GUEST_SESSIONS:
+                conversation_id = "guest_" + str(uuid.uuid4())
+                GUEST_SESSIONS[conversation_id] = [{"role": "system", "content": "You are the Friction RAG Engine. You must adapt your tone and formatting based on the user's input:\n1. Casual Conversation: If the user simply says hello, greets you, or makes small talk, reply naturally, warmly, and briefly in a single sentence. Do NOT use markdown, bullet points, or formal status reports for greetings.\n2. Technical/Factual Queries: If the user asks a specific question, requests an explanation, or queries the knowledge base, instantly switch to providing highly structured, direct, and concise answers using markdown, bold text, and bullet points."}]
+            
+            chat_history = GUEST_SESSIONS[conversation_id]
+            chat_history.append({"role": "user", "content": user_msg.message})
+            
+            chat_completion = client.chat.completions.create(
+                messages=chat_history,
+                model=user_msg.model, 
+            )
+            
+            bot_response = chat_completion.choices[0].message.content
+            chat_history.append({"role": "assistant", "content": bot_response})
+            
+            return {
+                "bot_reply": bot_response,
+                "active_model": user_msg.model,
+                "conversation_id": conversation_id
+            }
+
+        user_id = idinfo.get("sub")
+        chat_history = [{"role": "system", "content": "You are the Friction RAG Engine. You must adapt your tone and formatting based on the user's input:\n1. Casual Conversation: If the user simply says hello, greets you, or makes small talk, reply naturally, warmly, and briefly in a single sentence. Do NOT use markdown, bullet points, or formal status reports for greetings.\n2. Technical/Factual Queries: If the user asks a specific question, requests an explanation, or queries the knowledge base, instantly switch to providing highly structured, direct, and concise answers using markdown, bold text, and bullet points."}]
         
         if conversation_id:
             conv = db.query(Conversation).filter(Conversation.id == conversation_id, Conversation.user_id == user_id).first()

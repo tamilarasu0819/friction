@@ -21,19 +21,40 @@ interface ChatWindowProps {
 export function ChatWindow({ token, conversationId, setConversationId, setActiveView }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
   const [selectedModel, setSelectedModel] = useState('llama-3.1-8b-instant');
+  const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const models = [
+    { id: 'llama-3.1-8b-instant', label: 'Friction 1' },
+    { id: 'llama-3.3-70b-versatile', label: 'Friction Pro' },
+    { id: 'openai/gpt-oss-120b', label: 'Friction Adv' },
+  ];
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsModelDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    if (conversationId && token) {
-      fetch(`http://127.0.0.1:8000/api/chat/${conversationId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
+    if (conversationId) {
+      const headers: any = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      fetch(`http://127.0.0.1:8000/api/chat/${conversationId}`, { headers })
       .then(res => res.json())
       .then(data => {
         if(Array.isArray(data)) {
@@ -41,7 +62,7 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
             id: m.id,
             content: m.content,
             isSent: m.role === 'user',
-            time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            time: new Date(m.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           })));
         }
       })
@@ -58,10 +79,10 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading]);
+  }, [messages, isThinking]);
 
   const handleSend = async () => {
-    if (inputText.trim() === '' || isLoading) return;
+    if (inputText.trim() === '' || isThinking) return;
 
     const userText = inputText;
     const newMessage: Message = {
@@ -71,9 +92,9 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages(prev => [...prev, newMessage]);
+    setMessages(prevMessages => [...prevMessages, newMessage]);
     setInputText('');
-    setIsLoading(true);
+    setIsThinking(true);
 
     try {
       const response = await fetch('http://127.0.0.1:8000/api/chat', {
@@ -95,26 +116,34 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
         setConversationId(data.conversation_id);
       }
 
+      setIsThinking(false);
+
+      const botMessageId = (Date.now() + 1).toString();
       const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: data.bot_reply || "No reply from server",
+        id: botMessageId,
+        content: "",
         isSent: false,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         modelUsed: selectedModel
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      setMessages(prevMessages => [...prevMessages, botMessage]);
+
+      // Streaming chunk simulation: dynamically alter text value of the last message item
+      setMessages(prevMessages => prevMessages.map(msg => 
+        msg.id === botMessageId ? { ...msg, content: data.bot_reply || "No reply from server" } : msg
+      ));
+
     } catch (error) {
       console.error("Error communicating with backend:", error);
+      setIsThinking(false);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: "Sorry, I encountered an error communicating with the server.",
         isSent: false,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
+      setMessages(prevMessages => [...prevMessages, errorMessage]);
     }
   };
 
@@ -154,17 +183,35 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
                 <p className="text-xs font-medium text-text-secondary">System Ready</p>
               </div>
               <span className="text-text-muted mx-2 text-[10px]">•</span>
-              <div className="relative flex items-center">
-                <select 
-                  value={selectedModel}
-                  onChange={(e) => setSelectedModel(e.target.value)}
-                  className="appearance-none bg-bg-panel border border-border-color hover:border-text-muted text-text-primary text-xs font-medium rounded-full pl-3 pr-7 py-0.5 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent cursor-pointer transition-colors shadow-sm"
+              <div className="relative flex items-center" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                  className="flex items-center gap-1.5 bg-bg-panel border border-border-color hover:border-text-muted text-text-primary text-xs font-medium rounded-full pl-3 pr-2 py-1 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent cursor-pointer transition-colors shadow-sm"
                 >
-                  <option value="llama-3.1-8b-instant">Friction 1</option>
-                  <option value="llama-3.3-70b-versatile">Friction Pro</option>
-                  <option value="openai/gpt-oss-120b">Friction Adv</option>
-                </select>
-                <ChevronDown className="w-3.5 h-3.5 text-text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  {models.find(m => m.id === selectedModel)?.label || 'Select Model'}
+                  <ChevronDown className={`w-3.5 h-3.5 text-text-muted transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                
+                {isModelDropdownOpen && (
+                  <div className="absolute top-full mt-1.5 left-0 w-[140px] bg-[#1a1a1a] border border-[#333] rounded-lg shadow-xl z-50 py-1 overflow-hidden">
+                    {models.map(model => (
+                      <button
+                        key={model.id}
+                        onClick={() => {
+                          setSelectedModel(model.id);
+                          setIsModelDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-4 py-2 text-[11px] font-medium transition-colors ${
+                          selectedModel === model.id 
+                            ? 'bg-accent/10 text-accent' 
+                            : 'text-text-primary hover:bg-[#2a2a2a]'
+                        }`}
+                      >
+                        {model.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -193,13 +240,16 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
             />
           ))}
 
-          {isLoading && (
-            <div className="flex justify-start mb-6">
-              <div className="bg-bg-panel border border-border-color rounded-3xl rounded-tl-sm px-5 py-4 text-text-primary shadow-sm transition-colors">
-                <div className="flex space-x-1.5 items-center h-5">
-                  <div className="w-2 h-2 bg-text-muted rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-text-muted rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-text-muted rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+          {isThinking && (
+            <div className="flex justify-start mb-6 w-full group">
+              <div className="bg-bubble-ai border border-border-color text-text-primary rounded-3xl rounded-bl-sm px-6 py-4 shadow-sm backdrop-blur-sm transition-all duration-300 max-w-[85%] md:max-w-[75%]">
+                <div className="flex items-center space-x-3 h-5">
+                  <span className="text-[13px] font-medium text-text-secondary animate-pulse tracking-wide">Friction Engine is processing</span>
+                  <div className="flex space-x-1.5 items-center">
+                    <div className="w-1.5 h-1.5 bg-accent/80 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-1.5 h-1.5 bg-accent/80 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-1.5 h-1.5 bg-accent/80 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -213,7 +263,7 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
         value={inputText}
         onChange={(e) => setInputText(e.target.value)}
         onSend={handleSend}
-        disabled={isLoading}
+        disabled={isThinking}
       />
     </div>
   );
