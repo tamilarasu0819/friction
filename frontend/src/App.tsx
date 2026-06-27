@@ -17,7 +17,7 @@ function AppContent() {
 
   const fetchConversations = async (t: string) => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/conversations', {
+      const res = await fetch('https://friction-othk.onrender.com/api/conversations', {
         headers: { 'Authorization': `Bearer ${t}` }
       });
       const data = await res.json();
@@ -29,7 +29,7 @@ function AppContent() {
     const t = credentialResponse.credential;
     setToken(t);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/auth', {
+      const res = await fetch('https://friction-othk.onrender.com/api/auth', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${t}` }
       });

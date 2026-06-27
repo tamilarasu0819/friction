@@ -130,7 +130,7 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
       const headers: any = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      fetch(`http://127.0.0.1:8000/api/chat/${conversationId}`, { headers })
+      fetch(`https://friction-othk.onrender.com/api/chat/${conversationId}`, { headers })
       .then(res => res.json())
       .then(data => {
         if(Array.isArray(data)) {
@@ -187,7 +187,7 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
     setActiveBotMessageId(botMessageId);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/chat', {
+      const response = await fetch('https://friction-othk.onrender.com/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
