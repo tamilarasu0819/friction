@@ -9,7 +9,6 @@ langchain
 langchain-community
 langchain-huggingface
 langchain-groq
-sentence-transformers
 groq
 google-auth
 google-auth-oauthlib

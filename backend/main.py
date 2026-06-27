@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from groq import Groq
 from fastapi import UploadFile, File
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pypdf import PdfReader
@@ -23,8 +23,11 @@ app = FastAPI()
 
 GUEST_SESSIONS: Dict[str, List[dict]] = {}
 
-# Initialize local embeddings (this downloads a small model on first run)
-embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+# Initialize remote embeddings via Hugging Face API to save memory
+embeddings = HuggingFaceInferenceAPIEmbeddings(
+    api_key=os.environ.get("HF_TOKEN"),
+    model_name="sentence-transformers/all-MiniLM-L6-v2"
+)
 
 # Initialize ChromaDB in memory
 vector_store = Chroma(embedding_function=embeddings)
