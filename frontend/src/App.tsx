@@ -5,6 +5,7 @@ import { KnowledgeBase } from './components/KnowledgeBase';
 import { ThemeProvider } from './context/ThemeContext';
 import { SettingsModal } from './components/SettingsModal';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { KnowledgeBaseProvider } from './context/KnowledgeBaseContext';
 
 function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -77,7 +78,9 @@ function App() {
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <ThemeProvider>
-        <AppContent />
+        <KnowledgeBaseProvider>
+          <AppContent />
+        </KnowledgeBaseProvider>
       </ThemeProvider>
     </GoogleOAuthProvider>
   );

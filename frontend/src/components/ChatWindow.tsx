@@ -24,6 +24,12 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
   const [isThinking, setIsThinking] = useState(false);
   const [selectedModel, setSelectedModel] = useState('llama-3.1-8b-instant');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
+  
+  const fullTextRef = useRef("");
+  const isStreamFinishedRef = useRef(false);
+  const displayedTextLengthRef = useRef(0);
+  const [activeBotMessageId, setActiveBotMessageId] = useState<string | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -45,12 +51,82 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
     };
   }, []);
 
+  useEffect(() => {
+    if (!activeBotMessageId) return;
+
+    let animationFrameId: number;
+
+    const updateDisplay = () => {
+      const fullText = fullTextRef.current;
+      const currentLen = displayedTextLengthRef.current;
+      let isFinished = false;
+
+      if (currentLen < fullText.length) {
+        const diff = fullText.length - currentLen;
+        let charsToAdd = 1;
+        if (diff > 20) {
+          charsToAdd = Math.floor(diff / 4); // Speed up significantly if far behind
+        } else if (diff > 10) {
+          charsToAdd = 5;
+        } else if (diff > 5) {
+          charsToAdd = 3;
+        } else {
+          charsToAdd = 1;
+        }
+        
+        const nextLength = Math.min(currentLen + charsToAdd, fullText.length);
+        displayedTextLengthRef.current = nextLength;
+        const newText = fullText.substring(0, nextLength);
+        
+        setMessages(currentMessages => 
+          currentMessages.map(msg => 
+            msg.id === activeBotMessageId 
+              ? { ...msg, content: newText + "▍" } 
+              : msg
+          )
+        );
+      } else if (isStreamFinishedRef.current && currentLen === fullText.length) {
+        setMessages(currentMessages => 
+          currentMessages.map(msg => 
+            msg.id === activeBotMessageId 
+              ? { ...msg, content: fullText } 
+              : msg
+          )
+        );
+        isFinished = true;
+      }
+
+      if (isFinished) {
+        setActiveBotMessageId(null);
+      } else {
+        animationFrameId = requestAnimationFrame(updateDisplay);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(updateDisplay);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [activeBotMessageId]);
+
+
+
+  const createdConversationIdRef = useRef<string | null>(null);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
     if (conversationId) {
+      if (createdConversationIdRef.current === conversationId) {
+        // We just created this conversation locally via handleSend.
+        // Local state is already perfectly up-to-date, so skip the redundant fetch which would wipe the active stream.
+        createdConversationIdRef.current = null;
+        return;
+      }
+
       const headers: any = {};
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
@@ -92,9 +168,23 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages(prevMessages => [...prevMessages, newMessage]);
+    const botMessageId = (Date.now() + 1).toString();
+    const initialBotMessage: Message = {
+      id: botMessageId,
+      content: "▍",
+      isSent: false,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      modelUsed: selectedModel
+    };
+
+    setMessages(prevMessages => [...prevMessages, newMessage, initialBotMessage]);
     setInputText('');
     setIsThinking(true);
+    
+    fullTextRef.current = "";
+    displayedTextLengthRef.current = 0;
+    isStreamFinishedRef.current = false;
+    setActiveBotMessageId(botMessageId);
 
     try {
       const response = await fetch('http://127.0.0.1:8000/api/chat', {
@@ -110,33 +200,32 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      
-      if(data.conversation_id && setConversationId && data.conversation_id !== conversationId) {
-        setConversationId(data.conversation_id);
+      const convId = response.headers.get('X-Conversation-Id');
+      if (convId && setConversationId && convId !== conversationId) {
+        createdConversationIdRef.current = convId;
+        setConversationId(convId);
       }
 
       setIsThinking(false);
 
-      const botMessageId = (Date.now() + 1).toString();
-      const botMessage: Message = {
-        id: botMessageId,
-        content: "",
-        isSent: false,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        modelUsed: selectedModel
-      };
+      if (!response.body) throw new Error("No response body");
 
-      setMessages(prevMessages => [...prevMessages, botMessage]);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
 
-      // Streaming chunk simulation: dynamically alter text value of the last message item
-      setMessages(prevMessages => prevMessages.map(msg => 
-        msg.id === botMessageId ? { ...msg, content: data.bot_reply || "No reply from server" } : msg
-      ));
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        fullTextRef.current += decoder.decode(value, { stream: true });
+      }
+
+      isStreamFinishedRef.current = true;
 
     } catch (error) {
       console.error("Error communicating with backend:", error);
       setIsThinking(false);
+      isStreamFinishedRef.current = true;
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: "Sorry, I encountered an error communicating with the server.",
@@ -240,20 +329,6 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
             />
           ))}
 
-          {isThinking && (
-            <div className="flex justify-start mb-6 w-full group">
-              <div className="bg-bubble-ai border border-border-color text-text-primary rounded-3xl rounded-bl-sm px-6 py-4 shadow-sm backdrop-blur-sm transition-all duration-300 max-w-[85%] md:max-w-[75%]">
-                <div className="flex items-center space-x-3 h-5">
-                  <span className="text-[13px] font-medium text-text-secondary animate-pulse tracking-wide">Friction Engine is processing</span>
-                  <div className="flex space-x-1.5 items-center">
-                    <div className="w-1.5 h-1.5 bg-accent/80 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-1.5 h-1.5 bg-accent/80 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-1.5 h-1.5 bg-accent/80 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
           <div ref={messagesEndRef} />
         </div>
       </div>

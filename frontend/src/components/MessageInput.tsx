@@ -33,7 +33,7 @@ export function MessageInput({ value, onChange, onSend, disabled }: MessageInput
       {/* Emoji Picker Popover */}
       {showEmojiPicker && (
         <div className="absolute bottom-[100%] right-16 mb-2 z-50 shadow-xl rounded-lg overflow-hidden">
-          <EmojiPicker onEmojiClick={onEmojiClick} theme="auto" />
+          <EmojiPicker onEmojiClick={onEmojiClick} />
         </div>
       )}
 

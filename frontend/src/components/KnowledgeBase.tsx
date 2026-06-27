@@ -1,12 +1,66 @@
-import { Upload, FileText, CheckCircle } from 'lucide-react';
-
-const MOCK_FILES = [
-  { id: 1, name: 'physics_notes.pdf', size: '2.4 MB', status: 'Embedded' },
-  { id: 2, name: 'project_requirements.txt', size: '15 KB', status: 'Embedded' },
-  { id: 3, name: 'api_documentation.pdf', size: '1.1 MB', status: 'Processing' },
-];
+import { useRef } from 'react';
+import { Upload, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { useKnowledgeBase, type UploadedFile } from '../context/KnowledgeBaseContext';
 
 export function KnowledgeBase() {
+  const { files, setFiles } = useKnowledgeBase();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (file: File) => {
+    const newFile: UploadedFile = {
+      id: Date.now().toString(),
+      name: file.name,
+      size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+      status: 'Processing'
+    };
+    
+    setFiles(prev => [...prev, newFile]);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const res = await response.json();
+      
+      setFiles(prev => prev.map(f => {
+        if (f.id === newFile.id) {
+          return {
+            ...f,
+            status: res.status || 'Error',
+            chunksProcessed: res.chunks_processed
+          };
+        }
+        return f;
+      }));
+
+    } catch (error) {
+      console.error("Upload failed", error);
+      setFiles(prev => prev.map(f => f.id === newFile.id ? { ...f, status: 'Error' } : f));
+    }
+  };
+
+  const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFileUpload(e.target.files[0]);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileUpload(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-bg-app h-full overflow-hidden transition-colors duration-300">
       <div className="flex-1 overflow-y-auto p-8">
@@ -18,7 +72,19 @@ export function KnowledgeBase() {
           </div>
 
           {/* Upload Zone */}
-          <div className="border-2 border-dashed border-border-color rounded-3xl p-12 flex flex-col items-center justify-center bg-bg-panel/50 hover:bg-bg-panel transition-colors cursor-pointer group">
+          <div 
+            className="border-2 border-dashed border-border-color rounded-3xl p-12 flex flex-col items-center justify-center bg-bg-panel/50 hover:bg-bg-panel transition-colors cursor-pointer group"
+            onClick={() => fileInputRef.current?.click()}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+          >
+            <input 
+              type="file" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={onFileChange} 
+              accept=".pdf,.txt"
+            />
             <div className="w-16 h-16 bg-accent/10 text-accent rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Upload className="w-8 h-8" />
             </div>
@@ -39,7 +105,7 @@ export function KnowledgeBase() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-color">
-                  {MOCK_FILES.map((file) => (
+                  {files.map((file) => (
                     <tr key={file.id} className="hover:bg-bg-sidebar/50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center space-x-3">
@@ -51,19 +117,34 @@ export function KnowledgeBase() {
                         {file.size}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex items-center space-x-1.5">
-                          {file.status === 'Embedded' ? (
-                            <CheckCircle className="w-4 h-4 text-emerald-500" />
-                          ) : (
-                            <div className="w-4 h-4 rounded-full border-2 border-accent border-t-transparent animate-spin" />
-                          )}
-                          <span className={`text-xs font-medium ${file.status === 'Embedded' ? 'text-emerald-500' : 'text-accent'}`}>
-                            {file.status}
-                          </span>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-1.5">
+                            {file.status === 'Embedded' ? (
+                              <CheckCircle className="w-4 h-4 text-emerald-500" />
+                            ) : file.status === 'Error' ? (
+                              <AlertCircle className="w-4 h-4 text-red-500" />
+                            ) : (
+                              <div className="w-4 h-4 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+                            )}
+                            <span className={`text-xs font-medium ${
+                              file.status === 'Embedded' ? 'text-emerald-500' : 
+                              file.status === 'Error' ? 'text-red-500' : 'text-accent'
+                            }`}>
+                              {file.status} {file.chunksProcessed ? `(${file.chunksProcessed} chunks)` : ''}
+                            </span>
+                          </div>
+                          <button className="text-red-500 hover:text-red-400 cursor-pointer ml-4">🗑️</button>
                         </div>
                       </td>
                     </tr>
                   ))}
+                  {files.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-6 py-8 text-center text-sm text-text-muted">
+                        No files uploaded yet.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

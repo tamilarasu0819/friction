@@ -22,14 +22,13 @@ export function MessageBubble({ content, isSent, time, modelUsed }: MessageBubbl
 
   return (
     <div className={`flex w-full ${isSent ? 'justify-end' : 'justify-start'} mb-6 group`}>
-      <div className={`max-w-[85%] md:max-w-[75%] rounded-3xl px-6 py-4 shadow-sm backdrop-blur-sm transition-all duration-300 relative ${
-        isSent
-          ? 'bg-bubble-user text-white rounded-br-sm'
-          : 'bg-bubble-ai border border-border-color text-text-primary rounded-bl-sm'
+      <div className={`max-w-[85%] md:max-w-[75%] rounded-3xl px-6 py-4 shadow-sm backdrop-blur-sm transition-all duration-300 relative ${isSent
+        ? 'bg-bubble-user text-white rounded-br-sm'
+        : 'bg-bubble-ai border border-border-color text-text-primary rounded-bl-sm'
         }`}>
-        
+
         {!isSent && (
-          <button 
+          <button
             onClick={handleCopy}
             className="absolute top-3 right-3 p-1.5 rounded-full bg-bg-panel border border-border-color text-text-secondary hover:text-text-primary hover:bg-bg-app transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100 z-10"
             title="Copy message"
@@ -38,32 +37,34 @@ export function MessageBubble({ content, isSent, time, modelUsed }: MessageBubbl
           </button>
         )}
 
-        <div className={`leading-relaxed text-[15px] tracking-wide markdown-body whitespace-pre-wrap overflow-hidden ${!isSent ? 'mt-4' : ''}`}>
+        <div className={`leading-relaxed text-[15px] tracking-wide markdown-content whitespace-pre-wrap overflow-hidden ${!isSent ? 'mt-4' : ''}`}>
           {isSent ? content : (
-            <ReactMarkdown
-              components={{
-                code({node, inline, className, children, ...props}: any) {
-                  const match = /language-(\w+)/.exec(className || '')
-                  return !inline && match ? (
-                    <SyntaxHighlighter
-                      style={vscDarkPlus as any}
-                      language={match[1]}
-                      PreTag="div"
-                      className="rounded-md my-4 !bg-[#1e1e1e] border border-border-color shadow-sm !text-[13px]"
-                      {...props}
-                    >
-                      {String(children).replace(/\n$/, '')}
-                    </SyntaxHighlighter>
-                  ) : (
-                    <code className="bg-text-primary/10 text-accent px-1.5 py-0.5 rounded-md text-[13px] font-mono" {...props}>
-                      {children}
-                    </code>
-                  )
-                }
-              }}
-            >
-              {content}
-            </ReactMarkdown>
+            <div className="prose prose-invert prose-sm max-w-none prose-p:my-1 prose-li:my-0 prose-ul:my-1 leading-snug">
+              <ReactMarkdown
+                components={{
+                  code({ node, inline, className, children, ...props }: any) {
+                    const match = /language-(\w+)/.exec(className || '')
+                    return !inline && match ? (
+                      <SyntaxHighlighter
+                        style={vscDarkPlus as any}
+                        language={match[1]}
+                        PreTag="div"
+                        className="rounded-md my-4 !bg-[#1e1e1e] border border-border-color shadow-sm !text-[13px]"
+                        {...props}
+                      >
+                        {String(children).replace(/\n$/, '')}
+                      </SyntaxHighlighter>
+                    ) : (
+                      <code className="bg-text-primary/10 text-accent px-1.5 py-0.5 rounded-md text-[13px] font-mono" {...props}>
+                        {children}
+                      </code>
+                    )
+                  }
+                }}
+              >
+                {content}
+              </ReactMarkdown>
+            </div>
           )}
         </div>
         <div className={`mt-3 flex items-center justify-${isSent ? 'end' : 'start'} gap-2 opacity-60 group-hover:opacity-100 transition-opacity`}>

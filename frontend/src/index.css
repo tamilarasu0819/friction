@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --color-bg-app: var(--theme-bg-app);
@@ -16,129 +17,232 @@
   --color-accent-fg: var(--theme-accent-fg);
 }
 
-:root, [data-theme="default"] {
-  --theme-bg-app: #0f172a; /* slate-900 */
-  --theme-bg-sidebar: #0f172a; /* slate-900 */
-  --theme-bg-panel: #1e293b; /* slate-800 */
-  --theme-header: #0f172a; /* slate-900 */
-  --theme-bubble-user: #2563eb; /* blue-600 */
-  --theme-bubble-ai: #1e293b; /* slate-800 */
-  --theme-text-primary: #e2e8f0; /* slate-200 */
-  --theme-text-secondary: #94a3b8; /* slate-400 */
-  --theme-text-muted: #64748b; /* slate-500 */
-  --theme-border-color: #334155; /* slate-700 */
-  --theme-accent: #60a5fa; /* blue-400 */
-  --theme-accent-hover: #3b82f6; /* blue-500 */
+:root,
+[data-theme="default"] {
+  --theme-bg-app: #0f172a;
+  /* slate-900 */
+  --theme-bg-sidebar: #0f172a;
+  /* slate-900 */
+  --theme-bg-panel: #1e293b;
+  /* slate-800 */
+  --theme-header: #0f172a;
+  /* slate-900 */
+  --theme-bubble-user: #2563eb;
+  /* blue-600 */
+  --theme-bubble-ai: #1e293b;
+  /* slate-800 */
+  --theme-text-primary: #e2e8f0;
+  /* slate-200 */
+  --theme-text-secondary: #94a3b8;
+  /* slate-400 */
+  --theme-text-muted: #64748b;
+  /* slate-500 */
+  --theme-border-color: #334155;
+  /* slate-700 */
+  --theme-accent: #60a5fa;
+  /* blue-400 */
+  --theme-accent-hover: #3b82f6;
+  /* blue-500 */
   --theme-accent-fg: #ffffff;
 }
 
 [data-theme="dark"] {
-  --theme-bg-app: #111827; /* gray-900 */
-  --theme-bg-sidebar: #111827; /* gray-900 */
-  --theme-bg-panel: #1f2937; /* gray-800 */
-  --theme-header: #111827; /* gray-900 */
-  --theme-bubble-user: #4f46e5; /* indigo-600 */
-  --theme-bubble-ai: #374151; /* gray-700 */
-  --theme-text-primary: #f3f4f6; /* gray-100 */
-  --theme-text-secondary: #9ca3af; /* gray-400 */
-  --theme-text-muted: #6b7280; /* gray-500 */
-  --theme-border-color: #374151; /* gray-700 */
-  --theme-accent: #818cf8; /* indigo-400 */
-  --theme-accent-hover: #6366f1; /* indigo-500 */
+  --theme-bg-app: #111827;
+  /* gray-900 */
+  --theme-bg-sidebar: #111827;
+  /* gray-900 */
+  --theme-bg-panel: #1f2937;
+  /* gray-800 */
+  --theme-header: #111827;
+  /* gray-900 */
+  --theme-bubble-user: #4f46e5;
+  /* indigo-600 */
+  --theme-bubble-ai: #374151;
+  /* gray-700 */
+  --theme-text-primary: #f3f4f6;
+  /* gray-100 */
+  --theme-text-secondary: #9ca3af;
+  /* gray-400 */
+  --theme-text-muted: #6b7280;
+  /* gray-500 */
+  --theme-border-color: #374151;
+  /* gray-700 */
+  --theme-accent: #818cf8;
+  /* indigo-400 */
+  --theme-accent-hover: #6366f1;
+  /* indigo-500 */
   --theme-accent-fg: #ffffff;
 }
 
 [data-theme="black"] {
   --theme-bg-app: #000000;
-  --theme-bg-sidebar: #09090b; /* zinc-950 */
-  --theme-bg-panel: #18181b; /* zinc-900 */
+  --theme-bg-sidebar: #09090b;
+  /* zinc-950 */
+  --theme-bg-panel: #18181b;
+  /* zinc-900 */
   --theme-header: #000000;
-  --theme-bubble-user: #3f3f46; /* zinc-700 */
-  --theme-bubble-ai: #18181b; /* zinc-900 */
+  --theme-bubble-user: #3f3f46;
+  /* zinc-700 */
+  --theme-bubble-ai: #18181b;
+  /* zinc-900 */
   --theme-text-primary: #ffffff;
-  --theme-text-secondary: #a1a1aa; /* zinc-400 */
-  --theme-text-muted: #71717a; /* zinc-500 */
-  --theme-border-color: #27272a; /* zinc-800 */
-  --theme-accent: #f4f4f5; /* zinc-100 */
+  --theme-text-secondary: #a1a1aa;
+  /* zinc-400 */
+  --theme-text-muted: #71717a;
+  /* zinc-500 */
+  --theme-border-color: #27272a;
+  /* zinc-800 */
+  --theme-accent: #f4f4f5;
+  /* zinc-100 */
   --theme-accent-hover: #ffffff;
   --theme-accent-fg: #000000;
 }
 
 [data-theme="glossy-blue"] {
-  --theme-bg-app: #f0f9ff; /* sky-50 */
-  --theme-bg-sidebar: #e0f2fe; /* sky-100 */
+  --theme-bg-app: #f0f9ff;
+  /* sky-50 */
+  --theme-bg-sidebar: #e0f2fe;
+  /* sky-100 */
   --theme-bg-panel: #ffffff;
   --theme-header: rgba(240, 249, 255, 0.95);
-  --theme-bubble-user: #0ea5e9; /* sky-500 */
-  --theme-bubble-ai: #e0f2fe; /* sky-100 */
-  --theme-text-primary: #0c4a6e; /* sky-900 */
-  --theme-text-secondary: #0284c7; /* sky-600 */
-  --theme-text-muted: #38bdf8; /* sky-400 */
-  --theme-border-color: #bae6fd; /* sky-200 */
-  --theme-accent: #0284c7; /* sky-600 */
-  --theme-accent-hover: #0369a1; /* sky-700 */
+  --theme-bubble-user: #0ea5e9;
+  /* sky-500 */
+  --theme-bubble-ai: #e0f2fe;
+  /* sky-100 */
+  --theme-text-primary: #0c4a6e;
+  /* sky-900 */
+  --theme-text-secondary: #0284c7;
+  /* sky-600 */
+  --theme-text-muted: #38bdf8;
+  /* sky-400 */
+  --theme-border-color: #bae6fd;
+  /* sky-200 */
+  --theme-accent: #0284c7;
+  /* sky-600 */
+  --theme-accent-hover: #0369a1;
+  /* sky-700 */
   --theme-accent-fg: #ffffff;
 }
 
 [data-theme="white"] {
   --theme-bg-app: #ffffff;
-  --theme-bg-sidebar: #f9fafb; /* gray-50 */
+  --theme-bg-sidebar: #f9fafb;
+  /* gray-50 */
   --theme-bg-panel: #ffffff;
   --theme-header: rgba(255, 255, 255, 0.95);
-  --theme-bubble-user: #111827; /* gray-900 */
-  --theme-bubble-ai: #f3f4f6; /* gray-100 */
-  --theme-text-primary: #111827; /* gray-900 */
-  --theme-text-secondary: #4b5563; /* gray-600 */
-  --theme-text-muted: #9ca3af; /* gray-400 */
-  --theme-border-color: #e5e7eb; /* gray-200 */
-  --theme-accent: #111827; /* gray-900 */
+  --theme-bubble-user: #111827;
+  /* gray-900 */
+  --theme-bubble-ai: #f3f4f6;
+  /* gray-100 */
+  --theme-text-primary: #111827;
+  /* gray-900 */
+  --theme-text-secondary: #4b5563;
+  /* gray-600 */
+  --theme-text-muted: #9ca3af;
+  /* gray-400 */
+  --theme-border-color: #e5e7eb;
+  /* gray-200 */
+  --theme-accent: #111827;
+  /* gray-900 */
   --theme-accent-hover: #000000;
   --theme-accent-fg: #ffffff;
 }
 
 [data-theme="gray"] {
-  --theme-bg-app: #f1f5f9; /* slate-100 */
-  --theme-bg-sidebar: #e2e8f0; /* slate-200 */
+  --theme-bg-app: #f1f5f9;
+  /* slate-100 */
+  --theme-bg-sidebar: #e2e8f0;
+  /* slate-200 */
   --theme-bg-panel: #ffffff;
   --theme-header: rgba(241, 245, 249, 0.95);
-  --theme-bubble-user: #475569; /* slate-600 */
-  --theme-bubble-ai: #e2e8f0; /* slate-200 */
-  --theme-text-primary: #0f172a; /* slate-900 */
-  --theme-text-secondary: #475569; /* slate-600 */
-  --theme-text-muted: #94a3b8; /* slate-400 */
-  --theme-border-color: #cbd5e1; /* slate-300 */
-  --theme-accent: #334155; /* slate-700 */
-  --theme-accent-hover: #1e293b; /* slate-800 */
+  --theme-bubble-user: #475569;
+  /* slate-600 */
+  --theme-bubble-ai: #e2e8f0;
+  /* slate-200 */
+  --theme-text-primary: #0f172a;
+  /* slate-900 */
+  --theme-text-secondary: #475569;
+  /* slate-600 */
+  --theme-text-muted: #94a3b8;
+  /* slate-400 */
+  --theme-border-color: #cbd5e1;
+  /* slate-300 */
+  --theme-accent: #334155;
+  /* slate-700 */
+  --theme-accent-hover: #1e293b;
+  /* slate-800 */
   --theme-accent-fg: #ffffff;
 }
 
-html, body {
+html,
+body {
   background-color: var(--theme-bg-app);
   color: var(--theme-text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* React Markdown custom styles */
-.markdown-body {
+.markdown-content {
   word-wrap: break-word;
-  line-height: 1.6;
+  line-height: 1.5;
 }
-.markdown-body p {
-  margin-bottom: 0.75em;
+
+.markdown-content p {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
 }
-.markdown-body p:last-child {
-  margin-bottom: 0;
+
+.markdown-content ul,
+.markdown-content ol {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+  padding-left: 1.5rem;
 }
-.markdown-body strong {
+
+.markdown-content ul {
+  list-style-type: disc;
+}
+
+.markdown-content ol {
+  list-style-type: decimal;
+}
+
+.markdown-content li {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* This is the most critical fix for the massive gaps */
+.markdown-content li>p {
+  margin: 0 !important;
+  display: inline-block;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4,
+.markdown-content h5,
+.markdown-content h6 {
+  margin-top: 1rem !important;
+  margin-bottom: 0.25rem !important;
+  line-height: 1.25;
   font-weight: 600;
 }
-.markdown-body code {
+
+/* Inline Elements & Blocks */
+.markdown-content strong {
+  font-weight: 600;
+}
+
+.markdown-content code {
   background-color: rgba(128, 128, 128, 0.15);
   padding: 0.2em 0.4em;
   border-radius: 0.25rem;
   font-size: 0.9em;
 }
-.markdown-body pre {
+
+.markdown-content pre {
   background-color: rgba(0, 0, 0, 0.15);
   padding: 1rem;
   border-radius: 0.5rem;
@@ -146,21 +250,32 @@ html, body {
   margin-top: 0.75rem;
   margin-bottom: 0.75rem;
 }
-.markdown-body pre code {
+
+.markdown-content pre code {
   background-color: transparent;
   padding: 0;
 }
-.markdown-body ul {
-  list-style-type: disc;
-  padding-left: 1.5rem;
-  margin-bottom: 0.75em;
-}
-.markdown-body ol {
-  list-style-type: decimal;
-  padding-left: 1.5rem;
-  margin-bottom: 0.75em;
-}
-.markdown-body a {
+
+.markdown-content a {
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+/* Sledgehammer fixes for Tailwind Typography prose list margins */
+.prose li p {
+  margin: 0 !important;
+}
+
+.prose ul, .prose ol {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.prose li {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.prose p:empty, .prose p > br:only-child {
+  display: none !important;
 }
