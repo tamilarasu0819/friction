@@ -193,7 +193,7 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
     try {
       loadingTimeoutId = setTimeout(() => {
         setLoadingMessage("Please wait, the server is loading...");
-      }, 5000);
+      }, 3000);
 
       const response = await fetch('https://friction-othk.onrender.com/api/chat', {
         method: 'POST',
