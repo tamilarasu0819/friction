@@ -22,6 +22,7 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Thinking...');
   const [selectedModel, setSelectedModel] = useState('llama-3.1-8b-instant');
   const [isModelDropdownOpen, setIsModelDropdownOpen] = useState(false);
   
@@ -180,13 +181,20 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
     setMessages(prevMessages => [...prevMessages, newMessage, initialBotMessage]);
     setInputText('');
     setIsThinking(true);
+    setLoadingMessage('Thinking...');
     
     fullTextRef.current = "";
     displayedTextLengthRef.current = 0;
     isStreamFinishedRef.current = false;
     setActiveBotMessageId(botMessageId);
 
+    let loadingTimeoutId: ReturnType<typeof setTimeout>;
+
     try {
+      loadingTimeoutId = setTimeout(() => {
+        setLoadingMessage("Please wait, the server is loading...");
+      }, 5000);
+
       const response = await fetch('https://friction-othk.onrender.com/api/chat', {
         method: 'POST',
         headers: {
@@ -233,6 +241,8 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prevMessages => [...prevMessages, errorMessage]);
+    } finally {
+      clearTimeout(loadingTimeoutId!);
     }
   };
 
@@ -328,6 +338,12 @@ export function ChatWindow({ token, conversationId, setConversationId, setActive
               modelUsed={msg.modelUsed}
             />
           ))}
+
+          {isThinking && (
+            <div className="text-center text-sm text-text-muted mt-2 mb-4 animate-pulse">
+              {loadingMessage}
+            </div>
+          )}
 
           <div ref={messagesEndRef} />
         </div>
