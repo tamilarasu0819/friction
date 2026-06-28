@@ -34,7 +34,12 @@ vector_store = Chroma(embedding_function=embeddings)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # IMPORTANT: Browsers will block wildcard "*" if allow_credentials=True. 
+    # Replace these with your actual local and Vercel URLs!
+    allow_origins=[
+        "http://localhost:5173", 
+        "https://friction-app.vercel.app" # Change this to your actual Vercel URL
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -207,4 +212,7 @@ Context:
         return StreamingResponse(generate(), media_type="text/event-stream", headers=headers)
         
     except Exception as e:
-        return StreamingResponse((f"Friction Engine Error: {str(e)}" for _ in range(1)), media_type="text/event-stream")
+        # The Bug Fix: Capture the error before the generator consumes it
+        error_msg = f"Friction Engine Error: {str(e)}"
+        print(error_msg) # Print to Render logs for easy debugging
+        return StreamingResponse(iter([error_msg]), media_type="text/event-stream")
