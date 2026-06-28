@@ -6,7 +6,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from groq import Groq
 from fastapi import UploadFile, File
-from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
+from langchain_huggingface import HuggingFaceEndpointEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pypdf import PdfReader
@@ -23,10 +23,11 @@ app = FastAPI()
 
 GUEST_SESSIONS: Dict[str, List[dict]] = {}
 
-# Initialize remote embeddings via Hugging Face API to save memory
-embeddings = HuggingFaceInferenceAPIEmbeddings(
-    api_key=os.environ.get("HF_TOKEN"),
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
+# Initialize remote embeddings using the modern, stable Langchain package
+embeddings = HuggingFaceEndpointEmbeddings(
+    model="sentence-transformers/all-MiniLM-L6-v2",
+    task="feature-extraction",
+    huggingfacehub_api_token=os.environ.get("HF_TOKEN")
 )
 
 # Initialize ChromaDB in memory
@@ -34,11 +35,10 @@ vector_store = Chroma(embedding_function=embeddings)
 
 app.add_middleware(
     CORSMiddleware,
-    # IMPORTANT: Browsers will block wildcard "*" if allow_credentials=True. 
-    # Replace these with your actual local and Vercel URLs!
+    # IMPORTANT: Replace the Vercel URL with your actual live frontend URL!
     allow_origins=[
         "http://localhost:5173", 
-        "https://friction-app.vercel.app" # Change this to your actual Vercel URL
+        "https://friction-app.vercel.app" 
     ],
     allow_credentials=True,
     allow_methods=["*"],
