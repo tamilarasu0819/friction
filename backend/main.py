@@ -34,7 +34,9 @@ app.add_middleware(
     # IMPORTANT: Replace the Vercel URL with your actual live frontend URL!
     allow_origins=[
         "http://localhost:5173", 
-        "https://friction-app.vercel.app" 
+        "https://friction-app.vercel.app" ,
+        "https://friction-seven.vercel.app",
+        "https://friction-7dgds2taw-tamilarasu-s0708.vercel.app"
     ],
     allow_credentials=True,
     allow_methods=["*"],
