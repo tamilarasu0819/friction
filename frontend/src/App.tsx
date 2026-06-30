@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Menu } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { ChatWindow } from './components/ChatWindow';
 import { KnowledgeBase } from './components/KnowledgeBase';
@@ -12,6 +13,7 @@ function AppContent() {
   const [activeView, setActiveView] = useState<'chat' | 'knowledge_base'>('chat');
   const [conversations, setConversations] = useState<any[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>(undefined);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<any | null>(null);
 
@@ -47,8 +49,10 @@ function AppContent() {
   }
 
   return (
-    <div className="flex h-screen w-full bg-bg-app overflow-hidden font-sans text-text-primary transition-colors duration-300">
+    <div className="flex h-screen w-full bg-bg-app overflow-hidden font-sans text-text-primary transition-colors duration-300 relative">
       <Sidebar 
+        isMobileMenuOpen={isMobileMenuOpen}
+        setIsMobileMenuOpen={setIsMobileMenuOpen}
         onOpenSettings={() => setIsSettingsOpen(true)} 
         activeView={activeView}
         setActiveView={setActiveView}
@@ -56,18 +60,34 @@ function AppContent() {
         onLoginSuccess={handleLoginSuccess}
         onLogout={handleLogout}
         user={user}
-        onSelectConversation={(id) => { setActiveConversationId(id); setActiveView('chat'); }}
+        onSelectConversation={(id) => { setActiveConversationId(id); setActiveView('chat'); setIsMobileMenuOpen(false); }}
       />
-      {activeView === 'chat' ? (
-        <ChatWindow 
-          token={token} 
-          conversationId={activeConversationId} 
-          setConversationId={setActiveConversationId}
-          setActiveView={setActiveView}
-        />
-      ) : (
-        <KnowledgeBase />
-      )}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden h-full">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center p-3 border-b border-border-color bg-header backdrop-blur-md z-10 shrink-0 shadow-sm">
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2 text-text-secondary hover:text-text-primary hover:bg-bg-panel rounded-lg transition-colors cursor-pointer"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <span className="ml-3 font-semibold text-text-primary">Friction Engine</span>
+        </div>
+        
+        {/* Main Content Area */}
+        <div className="flex-1 relative overflow-hidden flex flex-col">
+          {activeView === 'chat' ? (
+            <ChatWindow 
+              token={token} 
+              conversationId={activeConversationId} 
+              setConversationId={setActiveConversationId}
+              setActiveView={setActiveView}
+            />
+          ) : (
+            <KnowledgeBase />
+          )}
+        </div>
+      </div>
       <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
   );

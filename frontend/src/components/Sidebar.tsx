@@ -10,6 +10,8 @@ interface SidebarProps {
   onLogout?: () => void;
   user?: any;
   onSelectConversation?: (id: string) => void;
+  isMobileMenuOpen?: boolean;
+  setIsMobileMenuOpen?: (isOpen: boolean) => void;
 }
 
 export function Sidebar({ 
@@ -20,10 +22,22 @@ export function Sidebar({
   onLoginSuccess,
   onLogout,
   user,
-  onSelectConversation
+  onSelectConversation,
+  isMobileMenuOpen,
+  setIsMobileMenuOpen
 }: SidebarProps) {
   return (
-    <div className="w-[25%] h-full bg-bg-sidebar border-r border-border-color flex flex-col text-text-primary transition-colors duration-300 z-20">
+    <>
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40" 
+          onClick={() => setIsMobileMenuOpen?.(false)}
+        />
+      )}
+      <div className={`absolute z-50 left-0 h-full md:relative md:flex w-[80%] md:w-[25%] bg-bg-sidebar border-r border-border-color flex-col text-text-primary transition-transform duration-300 ${
+        isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+      } md:translate-x-0`}>
       {/* Profile Section */}
       {user ? (
         <div className="p-6 border-b border-border-color flex items-center justify-between">
@@ -53,7 +67,10 @@ export function Sidebar({
       <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
         <div className="space-y-1">
           <div 
-            onClick={() => setActiveView?.('chat')}
+            onClick={() => {
+              setActiveView?.('chat');
+              setIsMobileMenuOpen?.(false);
+            }}
             className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors shadow-sm ${
               activeView === 'chat' ? 'bg-bg-panel text-text-primary' : 'hover:bg-bg-panel/50 text-text-secondary hover:text-text-primary'
             }`}
@@ -69,7 +86,10 @@ export function Sidebar({
                 <div 
                   key={conv.id}
                   className="group flex items-center justify-between py-2 px-3 rounded-md hover:bg-bg-panel cursor-pointer transition-colors"
-                  onClick={() => onSelectConversation?.(conv.id)}
+                  onClick={() => {
+                    onSelectConversation?.(conv.id);
+                    setIsMobileMenuOpen?.(false);
+                  }}
                 >
                   <span className="text-sm text-text-secondary group-hover:text-text-primary truncate pr-2">{conv.title}</span>
                   <span className="text-[10px] text-text-muted shrink-0">
@@ -82,7 +102,10 @@ export function Sidebar({
         </div>
 
         <div 
-          onClick={() => setActiveView?.('knowledge_base')}
+          onClick={() => {
+            setActiveView?.('knowledge_base');
+            setIsMobileMenuOpen?.(false);
+          }}
           className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors shadow-sm ${
             activeView === 'knowledge_base' ? 'bg-bg-panel text-text-primary' : 'hover:bg-bg-panel/50 text-text-secondary hover:text-text-primary'
           }`}
@@ -92,7 +115,10 @@ export function Sidebar({
         </div>
 
         <div 
-          onClick={onOpenSettings}
+          onClick={() => {
+            if (onOpenSettings) onOpenSettings();
+            setIsMobileMenuOpen?.(false);
+          }}
           className="flex items-center gap-3 p-3 rounded-lg hover:bg-bg-panel/50 transition-colors cursor-pointer text-text-secondary hover:text-text-primary"
         >
           <Settings className="w-5 h-5" />
@@ -117,5 +143,6 @@ export function Sidebar({
         </div>
       </div>
     </div>
+    </>
   );
 }
