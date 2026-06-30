@@ -7,6 +7,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { SettingsModal } from './components/SettingsModal';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { KnowledgeBaseProvider } from './context/KnowledgeBaseContext';
+import { jwtDecode } from 'jwt-decode';
 
 function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -23,22 +24,32 @@ function AppContent() {
         headers: { 'Authorization': `Bearer ${t}` }
       });
       const data = await res.json();
-      if(Array.isArray(data)) setConversations(data);
-    } catch(e) { console.error(e); }
+      if (Array.isArray(data)) setConversations(data);
+    } catch (e) { console.error(e); }
   }
 
   const handleLoginSuccess = async (credentialResponse: any) => {
     const t = credentialResponse.credential;
     setToken(t);
+
+    if (t) {
+      try {
+        const decoded = jwtDecode(t);
+        setUser(decoded);
+      } catch (err) {
+        console.error("JWT Decode error", err);
+      }
+    }
+
     try {
       const res = await fetch('https://friction-othk.onrender.com/api/auth', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${t}` }
       });
-      const data = await res.json();
-      setUser(data.user);
+      await res.json();
+      // We already set user from JWT, so we just fetch conversations
       fetchConversations(t);
-    } catch(e) { console.error(e); }
+    } catch (e) { console.error(e); }
   };
 
   const handleLogout = () => {
@@ -50,10 +61,10 @@ function AppContent() {
 
   return (
     <div className="flex h-screen w-full bg-bg-app overflow-hidden font-sans text-text-primary transition-colors duration-300 relative">
-      <Sidebar 
+      <Sidebar
         isMobileMenuOpen={isMobileMenuOpen}
         setIsMobileMenuOpen={setIsMobileMenuOpen}
-        onOpenSettings={() => setIsSettingsOpen(true)} 
+        onOpenSettings={() => setIsSettingsOpen(true)}
         activeView={activeView}
         setActiveView={setActiveView}
         conversations={conversations}
@@ -65,7 +76,7 @@ function AppContent() {
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden h-full">
         {/* Mobile Header */}
         <div className="md:hidden flex items-center p-3 border-b border-border-color bg-header backdrop-blur-md z-10 shrink-0 shadow-sm">
-          <button 
+          <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="p-2 text-text-secondary hover:text-text-primary hover:bg-bg-panel rounded-lg transition-colors cursor-pointer"
           >
@@ -73,13 +84,13 @@ function AppContent() {
           </button>
           <span className="ml-3 font-semibold text-text-primary">Friction Engine</span>
         </div>
-        
+
         {/* Main Content Area */}
         <div className="flex-1 relative overflow-hidden flex flex-col">
           {activeView === 'chat' ? (
-            <ChatWindow 
-              token={token} 
-              conversationId={activeConversationId} 
+            <ChatWindow
+              token={token}
+              conversationId={activeConversationId}
               setConversationId={setActiveConversationId}
               setActiveView={setActiveView}
             />
@@ -94,7 +105,7 @@ function AppContent() {
 }
 
 function App() {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "dummy-client-id";
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "550974479045-9dd368v7gin54jp4hfbh27li4dgpujmv.apps.googleusercontent.com";
   return (
     <GoogleOAuthProvider clientId={clientId}>
       <ThemeProvider>

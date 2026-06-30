@@ -42,9 +42,13 @@ export function Sidebar({
       {user ? (
         <div className="p-6 border-b border-border-color flex items-center justify-between">
           <div className="flex items-center space-x-4 min-w-0">
-            <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center font-bold text-white shrink-0">
-              {user.name?.[0] || 'U'}
-            </div>
+            {user?.picture ? (
+              <img src={user.picture} alt="Profile" className="w-10 h-10 rounded-full object-cover shrink-0" />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center font-bold text-white shrink-0">
+                {user?.name?.[0] || 'U'}
+              </div>
+            )}
             <div className="min-w-0">
               <h2 className="text-text-primary font-semibold truncate text-sm">{user.name}</h2>
               <p className="text-xs text-emerald-500 truncate">Online</p>
